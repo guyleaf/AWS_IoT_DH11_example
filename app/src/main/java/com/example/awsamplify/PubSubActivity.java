@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -202,6 +203,7 @@ public class PubSubActivity extends Activity {
     View.OnClickListener connectClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            hideKeyboard(PubSubActivity.this);
 
             Log.d(LOG_TAG, "clientId = " + clientId);
 
@@ -257,6 +259,7 @@ public class PubSubActivity extends Activity {
     View.OnClickListener subscribeClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            hideKeyboard(PubSubActivity.this);
 
             if(txtSubscribe.getText().toString().matches(""))
             {
@@ -311,7 +314,7 @@ public class PubSubActivity extends Activity {
     View.OnClickListener publishClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            hideKeyboard(PubSubActivity.this);
             if(txtMessage.getText().toString().matches(""))
             {
                 toast = Toast.makeText(PubSubActivity.this,"Please input range value",Toast.LENGTH_SHORT);
@@ -345,7 +348,7 @@ public class PubSubActivity extends Activity {
     View.OnClickListener disconnectClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            hideKeyboard(PubSubActivity.this);
             try {
                 btnConnect.setEnabled(true);
                 btnSubscribe.setEnabled(false);
@@ -369,6 +372,22 @@ public class PubSubActivity extends Activity {
 
         intent.putStringArrayListExtra("history",asHistory);
         startActivity(intent);
+    }
+
+    public void doHideKeyBoard(View view)
+    {
+        hideKeyboard(this);
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 }
