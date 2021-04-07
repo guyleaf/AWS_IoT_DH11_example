@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
@@ -110,6 +111,8 @@ public class PubSubActivity extends Activity {
             "2zsA0jYq9zuqmvHmGO+2PiCc1n6MKFrw9hWLJKACxFCjqPKxAVVoLdjORRMr\n" +
             "-----END CERTIFICATE-----";
 
+    Toast toast;
+
     EditText txtSubscribe;
     EditText txtTopic;
     EditText txtMessage;
@@ -117,6 +120,7 @@ public class PubSubActivity extends Activity {
     TextView tvLastMessage;
     TextView tvClientId;
     TextView tvStatus;
+    TextView tvResult;
 
     Button btnConnect;
     Button btnSubscribe;
@@ -149,6 +153,7 @@ public class PubSubActivity extends Activity {
         tvLastMessage = (TextView) findViewById(R.id.tvLastMessage);
         tvClientId = (TextView) findViewById(R.id.tvClientId);
         tvStatus = (TextView) findViewById(R.id.tvStatus);
+        tvResult = findViewById(R.id.txtResult);
 
         btnConnect = (Button) findViewById(R.id.btnConnect);
         btnConnect.setOnClickListener(connectClick);
@@ -251,6 +256,13 @@ public class PubSubActivity extends Activity {
         @Override
         public void onClick(View v) {
 
+            if(txtSubscribe.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input Topic name",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
             final String topic = txtSubscribe.getText().toString();
 
             Log.d(LOG_TAG, "topic = " + topic);
@@ -278,6 +290,7 @@ public class PubSubActivity extends Activity {
                                             dsHistory.addFirst((humid + ", " + temp));
                                             if(dsHistory.size()>10)
                                                 dsHistory.removeLast();
+                                            tvResult.setText("Subscribe Success");
 
                                         } catch (UnsupportedEncodingException | JSONException e) {
                                             Log.e(LOG_TAG, "Message encoding error.", e);
@@ -288,6 +301,7 @@ public class PubSubActivity extends Activity {
                         });
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Subscription error.", e);
+                tvResult.setText("Subscribe failed");
             }
         }
     };
@@ -296,14 +310,24 @@ public class PubSubActivity extends Activity {
         @Override
         public void onClick(View v) {
 
+            if(txtMessage.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input range value",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
             final String topic = txtTopic.getText().toString();
             final String msg = txtMessage.getText().toString();
 
             try {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("range", Integer.parseInt(msg));
+
+                tvResult.setText("Publish Success");
                 mqttManager.publishString(jsonObject.toString(), topic, AWSIotMqttQos.QOS0);
             } catch (Exception e) {
+                tvResult.setText("Publish Failed");
                 Log.e(LOG_TAG, "Publish error.", e);
             }
 
@@ -318,7 +342,9 @@ public class PubSubActivity extends Activity {
                 btnConnect.setEnabled(true);
                 btnSubscribe.setEnabled(false);
                 btnPublish.setEnabled(false);
+                btnDisconnect.setEnabled(false);
                 mqttManager.disconnect();
+                tvResult.setText("");
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Disconnect error.", e);
             }
