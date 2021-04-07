@@ -1,6 +1,7 @@
 package com.example.awsamplify;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,12 +10,20 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.security.KeyStore;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
@@ -125,6 +134,8 @@ public class PubSubActivity extends Activity {
     String privateKey;
     String cert;
 
+    Deque<String> dsHistory = new ArrayDeque<>();
+    ArrayList<String> asHistory = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,6 +161,9 @@ public class PubSubActivity extends Activity {
 
         btnDisconnect = (Button) findViewById(R.id.btnDisconnect);
         btnDisconnect.setOnClickListener(disconnectClick);
+
+        btnPublish.setEnabled(false);
+        btnSubscribe.setEnabled(false);
 
         // MQTT client IDs are required to be unique per AWS IoT account.
         // This UUID is "practically unique" but does not _guarantee_
@@ -187,6 +201,10 @@ public class PubSubActivity extends Activity {
             Log.d(LOG_TAG, "clientId = " + clientId);
 
             try {
+                btnPublish.setEnabled(true);
+                btnSubscribe.setEnabled(true);
+                btnDisconnect.setEnabled(true);
+                btnConnect.setEnabled(false);
                 mqttManager.connect(clientKeyStore, new AWSIotMqttClientStatusCallback() {
                     @Override
                     public void onStatusChanged(final AWSIotMqttClientStatus status, final Throwable throwable) {
@@ -252,9 +270,14 @@ public class PubSubActivity extends Activity {
                                             Log.d(LOG_TAG, "   Topic: " + topic);
                                             Log.d(LOG_TAG, " Message: " + message);
 
-                                            tvLastMessage.setText("Humidity :" + jsonObject.getString("humidity") +
-                                                    " %   Temperature :" + jsonObject.getString("temperature") + " °C");
+                                            String humid = "Humidity :" + jsonObject.getString("humidity") + " %";
+                                            String temp = "Temperature :" + jsonObject.getString("temperature") + " °C";
 
+                                            tvLastMessage.setText(humid + "\n" + temp);
+
+                                            dsHistory.addFirst((humid + ", " + temp));
+                                            if(dsHistory.size()>10)
+                                                dsHistory.removeLast();
 
                                         } catch (UnsupportedEncodingException | JSONException e) {
                                             Log.e(LOG_TAG, "Message encoding error.", e);
@@ -302,4 +325,15 @@ public class PubSubActivity extends Activity {
 
         }
     };
+
+    public void goHistory(View view)
+    {
+        Intent intent = new Intent(this,historyActivity.class);
+        asHistory.clear();
+        asHistory.addAll(dsHistory);
+
+        intent.putStringArrayListExtra("history",asHistory);
+        startActivity(intent);
+    }
+
 }
