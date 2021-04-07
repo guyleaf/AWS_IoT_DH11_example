@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
@@ -110,6 +112,8 @@ public class PubSubActivity extends Activity {
             "2zsA0jYq9zuqmvHmGO+2PiCc1n6MKFrw9hWLJKACxFCjqPKxAVVoLdjORRMr\n" +
             "-----END CERTIFICATE-----";
 
+    Toast toast;
+
     EditText txtSubscribe;
     EditText txtTopic;
     EditText txtMessage;
@@ -117,6 +121,7 @@ public class PubSubActivity extends Activity {
     TextView tvLastMessage;
     TextView tvClientId;
     TextView tvStatus;
+    TextView tvResult;
 
     Button btnConnect;
     Button btnSubscribe;
@@ -149,6 +154,7 @@ public class PubSubActivity extends Activity {
         tvLastMessage = (TextView) findViewById(R.id.tvLastMessage);
         tvClientId = (TextView) findViewById(R.id.tvClientId);
         tvStatus = (TextView) findViewById(R.id.tvStatus);
+        tvResult = findViewById(R.id.txtResult);
 
         btnConnect = (Button) findViewById(R.id.btnConnect);
         btnConnect.setOnClickListener(connectClick);
@@ -197,14 +203,11 @@ public class PubSubActivity extends Activity {
     View.OnClickListener connectClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            hideKeyboard(PubSubActivity.this);
 
             Log.d(LOG_TAG, "clientId = " + clientId);
 
             try {
-                btnPublish.setEnabled(true);
-                btnSubscribe.setEnabled(true);
-                btnDisconnect.setEnabled(true);
-                btnConnect.setEnabled(false);
                 mqttManager.connect(clientKeyStore, new AWSIotMqttClientStatusCallback() {
                     @Override
                     public void onStatusChanged(final AWSIotMqttClientStatus status, final Throwable throwable) {
@@ -215,11 +218,15 @@ public class PubSubActivity extends Activity {
                             public void run() {
                                 if (status == AWSIotMqttClientStatus.Connecting) {
                                     tvStatus.setText("Connecting...");
+                                    btnConnect.setEnabled(false);
 
                                 } else if (status == AWSIotMqttClientStatus.Connected) {
                                     btnConnect.setEnabled(false);
                                     btnDisconnect.setEnabled(true);
+                                    btnPublish.setEnabled(true);
+                                    btnSubscribe.setEnabled(true);
                                     tvStatus.setText("Connected");
+                                    tvResult.setText("Connect Success!");
 
                                 } else if (status == AWSIotMqttClientStatus.Reconnecting) {
                                     if (throwable != null) {
@@ -240,9 +247,11 @@ public class PubSubActivity extends Activity {
                         });
                     }
                 });
+
             } catch (final Exception e) {
                 Log.e(LOG_TAG, "Connection error.", e);
                 tvStatus.setText("Error! " + e.getMessage());
+                tvResult.setText("Connect Failed!");
             }
         }
     };
@@ -250,6 +259,14 @@ public class PubSubActivity extends Activity {
     View.OnClickListener subscribeClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            hideKeyboard(PubSubActivity.this);
+
+            if(txtSubscribe.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input Topic name",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
 
             final String topic = txtSubscribe.getText().toString();
 
@@ -286,8 +303,10 @@ public class PubSubActivity extends Activity {
                                 });
                             }
                         });
+                tvResult.setText("Subscribe Success!");
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Subscription error.", e);
+                tvResult.setText("Subscribe failed!");
             }
         }
     };
@@ -295,6 +314,20 @@ public class PubSubActivity extends Activity {
     View.OnClickListener publishClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            hideKeyboard(PubSubActivity.this);
+            if(txtMessage.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input range value",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
+            if(txtTopic.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input Topic name",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
 
             final String topic = txtTopic.getText().toString();
             final String msg = txtMessage.getText().toString();
@@ -303,7 +336,9 @@ public class PubSubActivity extends Activity {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("range", Integer.parseInt(msg));
                 mqttManager.publishString(jsonObject.toString(), topic, AWSIotMqttQos.QOS0);
+                tvResult.setText("Publish Success!");
             } catch (Exception e) {
+                tvResult.setText("Publish Failed!");
                 Log.e(LOG_TAG, "Publish error.", e);
             }
 
@@ -313,14 +348,17 @@ public class PubSubActivity extends Activity {
     View.OnClickListener disconnectClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            hideKeyboard(PubSubActivity.this);
             try {
                 btnConnect.setEnabled(true);
                 btnSubscribe.setEnabled(false);
                 btnPublish.setEnabled(false);
+                btnDisconnect.setEnabled(false);
                 mqttManager.disconnect();
+                tvResult.setText("Disconnect Success!");
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Disconnect error.", e);
+                tvResult.setText("Disconnect failed!");
             }
 
         }
@@ -334,6 +372,22 @@ public class PubSubActivity extends Activity {
 
         intent.putStringArrayListExtra("history",asHistory);
         startActivity(intent);
+    }
+
+    public void doHideKeyBoard(View view)
+    {
+        hideKeyboard(this);
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 }

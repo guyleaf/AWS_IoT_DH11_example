@@ -103,15 +103,28 @@
         android:layout_height="150dp"
         android:gravity="left"
         android:textSize="25dp"
-        android:text="Humidity : -1 %\nTemperature : -1 °C" />
+        android:text="Humidity : N/A %\nTemperature : N/A °C" />
 
-    <Button
-        android:id="@+id/btnHistory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:onClick="goHistory"
-        android:text="History"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btnHistory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:onClick="goHistory"
+            android:text="History"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:onClick="doHideKeyBoard"
+            android:text="hideKeyBoard" />
+
+    </RelativeLayout>
 
     <EditText
         android:id="@+id/txtTopic"
@@ -157,6 +170,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
+        android:textColor="#ff0000"
+        android:textSize="30dp"
         android:gravity="center_horizontal" />
 
 </LinearLayout>
