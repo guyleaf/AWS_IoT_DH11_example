@@ -224,6 +224,7 @@ public class PubSubActivity extends Activity {
                                     btnPublish.setEnabled(true);
                                     btnSubscribe.setEnabled(true);
                                     tvStatus.setText("Connected");
+                                    tvResult.setText("Connect Success!");
 
                                 } else if (status == AWSIotMqttClientStatus.Reconnecting) {
                                     if (throwable != null) {
@@ -244,9 +245,11 @@ public class PubSubActivity extends Activity {
                         });
                     }
                 });
+
             } catch (final Exception e) {
                 Log.e(LOG_TAG, "Connection error.", e);
                 tvStatus.setText("Error! " + e.getMessage());
+                tvResult.setText("Connect Failed!");
             }
         }
     };
@@ -289,7 +292,6 @@ public class PubSubActivity extends Activity {
                                             dsHistory.addFirst((humid + ", " + temp));
                                             if(dsHistory.size()>10)
                                                 dsHistory.removeLast();
-                                            tvResult.setText("Subscribe Success");
 
                                         } catch (UnsupportedEncodingException | JSONException e) {
                                             Log.e(LOG_TAG, "Message encoding error.", e);
@@ -298,9 +300,10 @@ public class PubSubActivity extends Activity {
                                 });
                             }
                         });
+                tvResult.setText("Subscribe Success!");
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Subscription error.", e);
-                tvResult.setText("Subscribe failed");
+                tvResult.setText("Subscribe failed!");
             }
         }
     };
@@ -329,11 +332,10 @@ public class PubSubActivity extends Activity {
             try {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("range", Integer.parseInt(msg));
-
-                tvResult.setText("Publish Success");
                 mqttManager.publishString(jsonObject.toString(), topic, AWSIotMqttQos.QOS0);
+                tvResult.setText("Publish Success!");
             } catch (Exception e) {
-                tvResult.setText("Publish Failed");
+                tvResult.setText("Publish Failed!");
                 Log.e(LOG_TAG, "Publish error.", e);
             }
 
@@ -350,9 +352,10 @@ public class PubSubActivity extends Activity {
                 btnPublish.setEnabled(false);
                 btnDisconnect.setEnabled(false);
                 mqttManager.disconnect();
-                tvResult.setText("");
+                tvResult.setText("Disconnect Success!");
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Disconnect error.", e);
+                tvResult.setText("Disconnect failed!");
             }
 
         }
