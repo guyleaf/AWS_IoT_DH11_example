@@ -206,10 +206,6 @@ public class PubSubActivity extends Activity {
             Log.d(LOG_TAG, "clientId = " + clientId);
 
             try {
-                btnPublish.setEnabled(true);
-                btnSubscribe.setEnabled(true);
-                btnDisconnect.setEnabled(true);
-                btnConnect.setEnabled(false);
                 mqttManager.connect(clientKeyStore, new AWSIotMqttClientStatusCallback() {
                     @Override
                     public void onStatusChanged(final AWSIotMqttClientStatus status, final Throwable throwable) {
@@ -220,10 +216,13 @@ public class PubSubActivity extends Activity {
                             public void run() {
                                 if (status == AWSIotMqttClientStatus.Connecting) {
                                     tvStatus.setText("Connecting...");
+                                    btnConnect.setEnabled(false);
 
                                 } else if (status == AWSIotMqttClientStatus.Connected) {
                                     btnConnect.setEnabled(false);
                                     btnDisconnect.setEnabled(true);
+                                    btnPublish.setEnabled(true);
+                                    btnSubscribe.setEnabled(true);
                                     tvStatus.setText("Connected");
 
                                 } else if (status == AWSIotMqttClientStatus.Reconnecting) {
@@ -313,6 +312,13 @@ public class PubSubActivity extends Activity {
             if(txtMessage.getText().toString().matches(""))
             {
                 toast = Toast.makeText(PubSubActivity.this,"Please input range value",Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+
+            if(txtTopic.getText().toString().matches(""))
+            {
+                toast = Toast.makeText(PubSubActivity.this,"Please input Topic name",Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
