@@ -330,10 +330,7 @@ public class PubSubActivity extends Activity {
     {
         Intent intent = new Intent(this,historyActivity.class);
         asHistory.clear();
-        //asHistory.addAll(dsHistory);
-
-        for(int i=0;i<10;i++)
-            asHistory.add(String.valueOf(i));
+        asHistory.addAll(dsHistory);
 
         intent.putStringArrayListExtra("history",asHistory);
         startActivity(intent);
